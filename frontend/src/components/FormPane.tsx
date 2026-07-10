@@ -43,6 +43,26 @@ export function FormPane() {
     );
   }
 
+  // Templates like BAA, DPA, Pilot, etc. ship from CommonPaper without any
+  // inline `coverpage_link` placeholders — they expect values to be defined
+  // on a separate Cover Page, which the prototype doesn't model yet.
+  if (selectedDetail.fields.length === 0) {
+    return (
+      <section className="pane pane--form" aria-label="Document fields">
+        <h2 className="pane__title">Fields</h2>
+        <div className="form__notice" role="status" data-testid="no-fields-notice">
+          <p>
+            <strong>{selectedDetail.name}</strong> uses CommonPaper&apos;s Cover Page workflow,
+            which isn&apos;t supported in this prototype yet.
+          </p>
+          <p className="form__notice-hint">
+            You can still preview the document and download it as-is from the right pane.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="pane pane--form" aria-label="Document fields">
       <h2 className="pane__title">Fields</h2>
