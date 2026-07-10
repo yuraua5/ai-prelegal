@@ -1,0 +1,29 @@
+# Anything that doesn't belong inside the image.
+.git
+.gitignore
+.github
+.DS_Store
+.idea
+.vscode
+
+# Test artefacts and caches (kept on the host, not in the image).
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.uv-cache
+coverage
+node_modules
+frontend/dist
+
+# Local env (secrets must never reach the image).
+.env
+.env.*
+!.env.example
+
+# Per-package dev venvs.
+backend/.venv
+frontend/node_modules
+
+# Documentation that doesn't need to ship in the image.
+README.md
+CLAUDE.md
