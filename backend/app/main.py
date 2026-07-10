@@ -18,6 +18,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from .api_chat import router as chat_router
 from .api_documents import router as documents_router
 from .api_templates import router as templates_router
 from .config import get_settings
@@ -42,6 +43,7 @@ def healthz() -> dict[str, str]:
 
 app.include_router(templates_router)
 app.include_router(documents_router)
+app.include_router(chat_router)
 
 
 # ── Static SPA ───────────────────────────────────────────────────────────────
