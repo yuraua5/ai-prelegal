@@ -23,9 +23,9 @@ describe('parseInline', () => {
   });
 
   it('parses header_2 and header_3 spans', () => {
-    expect(
-      parseInline('<span class="header_2">Business Associate Obligations</span>'),
-    ).toEqual([{ kind: 'header', level: 2, text: 'Business Associate Obligations' }]);
+    expect(parseInline('<span class="header_2">Business Associate Obligations</span>')).toEqual([
+      { kind: 'header', level: 2, text: 'Business Associate Obligations' },
+    ]);
     expect(parseInline('<span class="header_3">Notice.</span>')).toEqual([
       { kind: 'header', level: 3, text: 'Notice.' },
     ]);
@@ -82,8 +82,7 @@ describe('parseMarkdown', () => {
   });
 
   it('handles a Mutual-NDA-style line with mixed inline tokens', () => {
-    const md =
-      '1. **Introduction**. This MNDA on <span class="coverpage_link">Purpose</span>.';
+    const md = '1. **Introduction**. This MNDA on <span class="coverpage_link">Purpose</span>.';
     const blocks = parseMarkdown(md);
     expect(blocks).toHaveLength(1);
     expect(blocks[0].kind).toBe('ol');

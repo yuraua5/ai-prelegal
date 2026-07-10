@@ -31,7 +31,8 @@ export type InlineNode =
   | { kind: 'strong'; text: string }
   | { kind: 'link'; text: string; href: string };
 
-const SPAN_RE = /<span\s+class="(coverpage_link|keyterms_link|header_2|header_3)"\s*>([^<]*)<\/span>/gi;
+const SPAN_RE =
+  /<span\s+class="(coverpage_link|keyterms_link|header_2|header_3)"\s*>([^<]*)<\/span>/gi;
 const STRONG_RE = /\*\*([^*]+)\*\*/g;
 const LINK_RE = /\[([^\]]+)\]\(([^)\s]+)\)/g;
 

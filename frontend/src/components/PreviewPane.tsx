@@ -46,9 +46,7 @@ function renderInline(nodes: InlineNode[], keyPrefix: string): ReactNode {
         );
       }
       case 'strong':
-        return (
-          <strong key={key}>{node.text}</strong>
-        );
+        return <strong key={key}>{node.text}</strong>;
       case 'link':
         return (
           <a key={key} href={node.href} target="_blank" rel="noopener noreferrer">
@@ -82,7 +80,10 @@ export function PreviewPane() {
   const { selectedDetail, previewMarkdown, previewStatus, previewError, fieldValues } =
     useAppState();
 
-  const rendered = useMemo(() => parseMarkdown(previewMarkdown).map(renderBlock), [previewMarkdown]);
+  const rendered = useMemo(
+    () => parseMarkdown(previewMarkdown).map(renderBlock),
+    [previewMarkdown],
+  );
 
   // Recompute missing-fields from the live preview so the download button
   // stays in sync without an extra round-trip to /api/documents.

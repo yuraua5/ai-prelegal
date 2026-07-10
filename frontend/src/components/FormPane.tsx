@@ -52,8 +52,8 @@ export function FormPane() {
         <h2 className="pane__title">Fields</h2>
         <div className="form__notice" role="status" data-testid="no-fields-notice">
           <p>
-            <strong>{selectedDetail.name}</strong> uses CommonPaper&apos;s Cover Page
-            workflow, which isn&apos;t supported in this prototype yet.
+            <strong>{selectedDetail.name}</strong> uses CommonPaper&apos;s Cover Page workflow,
+            which isn&apos;t supported in this prototype yet.
           </p>
           <p className="form__notice-hint">
             You can still preview the document and download it as-is from the right pane.
