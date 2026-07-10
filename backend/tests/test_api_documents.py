@@ -133,3 +133,76 @@ def test_endpoint_empty_body_is_ok(client: TestClient) -> None:
     body = response.json()
     assert set(body["missing"]) == set(body["fields"])
     assert "coverpage_link" in body["markdown"]
+
+
+# ── PDF export endpoint ──────────────────────────────────────────────────────
+
+
+def test_pdf_endpoint_returns_application_pdf(client: TestClient) -> None:
+    import io
+
+    import pypdf
+
+    response = client.post(
+        "/api/documents/Mutual-NDA.md/pdf",
+        json={
+            "fields": {
+                "Purpose": "evaluating a potential partnership",
+                "Effective Date": "2026-01-01",
+                "MNDA Term": "2 years",
+                "Term of Confidentiality": "3 years",
+                "Governing Law": "Delaware",
+                "Jurisdiction": "New Castle County, Delaware",
+            }
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    assert response.content[:4] == b"%PDF"
+    assert len(response.content) > 1024, "PDF body suspiciously small"
+
+    reader = pypdf.PdfReader(io.BytesIO(response.content))
+    assert len(reader.pages) >= 1, "PDF must contain at least one page"
+
+
+def test_pdf_endpoint_uses_friendly_download_filename(client: TestClient) -> None:
+    response = client.post(
+        "/api/documents/Mutual-NDA.md/pdf",
+        json={
+            "fields": {
+                "Purpose": "x",
+                "Effective Date": "2026-01-01",
+                "MNDA Term": "1y",
+                "Term of Confidentiality": "1y",
+                "Governing Law": "Delaware",
+                "Jurisdiction": "Delaware",
+            }
+        },
+    )
+    assert response.status_code == 200
+    cd = response.headers.get("content-disposition", "")
+    assert "Mutual-NDA.pdf" in cd, f"unexpected download name: {cd!r}"
+
+
+def test_pdf_endpoint_unknown_filename_returns_404(client: TestClient) -> None:
+    response = client.post(
+        "/api/documents/NotARealTemplate.md/pdf",
+        json={"fields": {}},
+    )
+    assert response.status_code == 404
+
+
+def test_pdf_endpoint_partial_fill_still_renders(client: TestClient) -> None:
+    """Even with unfilled placeholders, we render a PDF rather than 400.
+
+    The unfilled spans leak into the HTML and become bracketed placeholders in
+    the rendered document. The frontend should ideally guard against this, but
+    the API permits it so users can preview partial output.
+    """
+    response = client.post(
+        "/api/documents/Mutual-NDA.md/pdf",
+        json={"fields": {"Purpose": "evaluating"}},
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    assert response.content[:4] == b"%PDF"
