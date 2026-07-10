@@ -75,3 +75,31 @@ body {
   color: var(--color-gray-text);
   font-style: italic;
 }
+
+.picker {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.picker label {
+  font-weight: 600;
+  color: var(--color-dark-navy);
+}
+
+.picker select {
+  flex: 1;
+  max-width: 320px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: #fff;
+  color: var(--color-dark-navy);
+}
+
+.picker select:focus-visible {
+  outline: 2px solid var(--color-blue-primary);
+  outline-offset: 2px;
+}
