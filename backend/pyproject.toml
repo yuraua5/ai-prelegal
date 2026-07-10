@@ -18,6 +18,11 @@ dev = [
     "mypy>=1.11.0",
 ]
 
+[project.scripts]
+prelegal-dev = "backend.app.main:run"
+prelegal-test = "pytest:main"
+prelegal-lint = "ruff:console.main_entry"
+
 [tool.uv]
 package = true
 
