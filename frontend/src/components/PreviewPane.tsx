@@ -2,106 +2,87 @@
  * Right pane: live preview of the rendered document. We re-use the backend
  * substitution via the AppContext — the markdown we render here already has
  * user values in place and `<span class="coverpage_link">…</span>` for any
- * missing field. We do NOT use dangerouslySetInnerHTML; instead we walk
- * the markdown line by line into safe React nodes.
+ * missing field.
+ *
+ * Markdown → React rendering lives in `lib/markdown.ts` so it can be
+ * unit-tested in isolation. We never inject raw HTML.
  */
 
-import { useMemo } from 'react';
+import { Fragment, useMemo } from 'react';
+import type { ReactNode } from 'react';
 
 import { useAppState } from '../state/AppContext';
+import { parseMarkdown } from '../lib/markdown';
+import type { InlineNode, MarkdownBlock } from '../lib/markdown';
 import { PdfDownloadButton } from './PdfDownloadButton';
 
-const SPAN_RE = /<span\s+class="coverpage_link"\s*>([^<]+)<\/span>/gi;
-
-interface InlineSegment {
-  kind: 'text' | 'placeholder';
-  text: string;
-}
-
-function splitInline(line: string): InlineSegment[] {
-  const out: InlineSegment[] = [];
-  let last = 0;
-  for (const match of line.matchAll(SPAN_RE)) {
-    const start = match.index ?? 0;
-    if (start > last) {
-      out.push({ kind: 'text', text: line.slice(last, start) });
+function renderInline(nodes: InlineNode[], keyPrefix: string): ReactNode {
+  return nodes.map((node, i) => {
+    const key = `${keyPrefix}-${i}`;
+    switch (node.kind) {
+      case 'text':
+        // Strip any leftover unknown <span>…</span> so they don't leak through
+        // as raw markup (defensive: backend shouldn't send them, but BAA/DPA
+        // include other span classes that the renderer does not handle).
+        return <Fragment key={key}>{node.text.replace(/<\/?[^>]+>/g, '')}</Fragment>;
+      case 'placeholder':
+        return (
+          <span className="preview__placeholder" key={key}>
+            [missing: {node.name}]
+          </span>
+        );
+      case 'keyterm':
+        return (
+          <strong className="preview__keyterm" key={key}>
+            {node.text}
+          </strong>
+        );
+      case 'header': {
+        const cls = node.level === 2 ? 'preview__header-2' : 'preview__header-3';
+        return (
+          <strong className={cls} key={key}>
+            {node.text}
+          </strong>
+        );
+      }
+      case 'strong':
+        return (
+          <strong key={key}>{node.text}</strong>
+        );
+      case 'link':
+        return (
+          <a key={key} href={node.href} target="_blank" rel="noopener noreferrer">
+            {node.text}
+          </a>
+        );
     }
-    out.push({ kind: 'placeholder', text: match[1].trim() });
-    last = start + match[0].length;
-  }
-  if (last < line.length) {
-    out.push({ kind: 'text', text: line.slice(last) });
-  }
-  return out;
-}
-
-function renderInline(line: string, key: string): React.ReactNode {
-  const segments = splitInline(line);
-  return segments.map((seg, i) => {
-    if (seg.kind === 'placeholder') {
-      return (
-        <span className="preview__placeholder" key={`${key}-p-${i}`}>
-          [missing: {seg.text}]
-        </span>
-      );
-    }
-    return <span key={`${key}-t-${i}`}>{seg.text}</span>;
   });
 }
 
-function renderMarkdown(md: string): React.ReactNode {
-  if (!md) return null;
-  const lines = md.split('\n');
-  const blocks: React.ReactNode[] = [];
-  let i = 0;
-  while (i < lines.length) {
-    const line = lines[i];
-    if (line.startsWith('## ')) {
-      blocks.push(<h2 key={`h2-${i}`}>{renderInline(line.slice(3), `${i}-h2`)}</h2>);
-      i += 1;
-    } else if (line.startsWith('# ')) {
-      blocks.push(<h1 key={`h1-${i}`}>{renderInline(line.slice(2), `${i}-h1`)}</h1>);
-      i += 1;
-    } else if (/^\d+\.\s/.test(line)) {
-      // ordered list — collect until blank line or non-list line
-      const items: string[] = [];
-      while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
-        items.push(lines[i].replace(/^\d+\.\s/, ''));
-        i += 1;
-      }
-      blocks.push(
-        <ol key={`ol-${i}`}>
-          {items.map((it, j) => (
-            <li key={`ol-${i}-${j}`}>{renderInline(it, `${i}-ol-${j}`)}</li>
+function renderBlock(block: MarkdownBlock): ReactNode {
+  switch (block.kind) {
+    case 'h1':
+      return <h1 key={block.key}>{renderInline(block.inline, `${block.key}-h1`)}</h1>;
+    case 'h2':
+      return <h2 key={block.key}>{renderInline(block.inline, `${block.key}-h2`)}</h2>;
+    case 'ol':
+      return (
+        <ol key={block.key}>
+          {block.items.map((it, j) => (
+            <li key={`${block.key}-${j}`}>{renderInline(it, `${block.key}-ol-${j}`)}</li>
           ))}
-        </ol>,
+        </ol>
       );
-    } else if (line.trim() === '') {
-      i += 1;
-    } else {
-      // paragraph — group contiguous non-blank, non-heading, non-list lines
-      const para: string[] = [];
-      while (
-        i < lines.length &&
-        lines[i].trim() !== '' &&
-        !lines[i].startsWith('# ') &&
-        !lines[i].startsWith('## ') &&
-        !/^\d+\.\s/.test(lines[i])
-      ) {
-        para.push(lines[i]);
-        i += 1;
-      }
-      blocks.push(<p key={`p-${i}`}>{renderInline(para.join(' '), `${i}-p`)}</p>);
-    }
+    case 'p':
+      return <p key={block.key}>{renderInline(block.inline, `${block.key}-p`)}</p>;
   }
-  return blocks;
 }
 
 export function PreviewPane() {
   const { selectedDetail, previewMarkdown, previewStatus, previewError, fieldValues } =
     useAppState();
 
-  const rendered = useMemo(() => renderMarkdown(previewMarkdown), [previewMarkdown]);
+  const rendered = useMemo(() => parseMarkdown(previewMarkdown).map(renderBlock), [previewMarkdown]);
 
   // Recompute missing-fields from the live preview so the download button
   // stays in sync without an extra round-trip to /api/documents.

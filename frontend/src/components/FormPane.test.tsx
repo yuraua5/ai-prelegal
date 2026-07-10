@@ -139,6 +139,32 @@ describe('FormPane', () => {
   });
 });
 
+describe('FormPane — Cover Page templates', () => {
+  it('shows a "Cover Page workflow not supported" notice when fields is empty', async () => {
+    vi.spyOn(apiModule, 'fetchTemplateDetail').mockResolvedValueOnce({
+      name: 'BAA',
+      description: 'HIPAA Business Associate Agreement',
+      filename: 'BAA.md',
+      body: '# BAA\n\nBody only document.',
+      fields: [],
+    });
+
+    const { container } = render(
+      <AppProvider>
+        <SelectOnMount filename="BAA.md" />
+        <FormPane />
+      </AppProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('no-fields-notice')).toBeInTheDocument();
+    });
+    expect(screen.getByText(/cover page workflow/i)).toBeInTheDocument();
+    // No inputs should be rendered.
+    expect(container.querySelectorAll('input[data-field-name]')).toHaveLength(0);
+  });
+});
+
 describe('PreviewPane', () => {
   it('renders selected template body and highlights missing placeholders', async () => {
     const user = userEvent.setup();
@@ -195,5 +221,35 @@ describe('PreviewPane', () => {
       { timeout: 1500 },
     );
     expect(screen.getByTestId('preview')).toHaveTextContent(/\[missing: Purpose\]/);
+  });
+
+  it('renders **bold**, [link](url), and <span class="keyterms_link"> in the preview', async () => {
+    vi.spyOn(apiModule, 'fetchTemplateDetail').mockResolvedValueOnce({
+      name: 'Mutual NDA',
+      description: '',
+      filename: 'Mutual-NDA.md',
+      body: '1. **Introduction**. See [Version 1.0](https://commonpaper.com/x). The <span class="keyterms_link">Disclosing Party</span> agrees.',
+      fields: [],
+    });
+    vi.spyOn(apiModule, 'fillDocument').mockResolvedValue({
+      filename: 'Mutual-NDA.md',
+      markdown:
+        '1. **Introduction**. See [Version 1.0](https://commonpaper.com/x). The <span class="keyterms_link">Disclosing Party</span> agrees.',
+      missing: [],
+      extras: [],
+      fields: [],
+    });
+
+    render(
+      <AppProvider>
+        <SelectOnMount filename="Mutual-NDA.md" />
+        <PreviewPane />
+      </AppProvider>,
+    );
+
+    const preview = await waitFor(() => screen.getByTestId('preview'));
+    expect(preview.querySelector('strong')).not.toBeNull();
+    expect(preview.querySelector('a')?.getAttribute('href')).toBe('https://commonpaper.com/x');
+    expect(preview.querySelector('.preview__keyterm')).not.toBeNull();
   });
 });
