@@ -9,6 +9,7 @@
 import { useMemo } from 'react';
 
 import { useAppState } from '../state/AppContext';
+import { PdfDownloadButton } from './PdfDownloadButton';
 
 const SPAN_RE = /<span\s+class="coverpage_link"\s*>([^<]+)<\/span>/gi;
 
@@ -97,9 +98,28 @@ function renderMarkdown(md: string): React.ReactNode {
 }
 
 export function PreviewPane() {
-  const { selectedDetail, previewMarkdown, previewStatus, previewError } = useAppState();
+  const { selectedDetail, previewMarkdown, previewStatus, previewError, fieldValues } =
+    useAppState();
 
   const rendered = useMemo(() => renderMarkdown(previewMarkdown), [previewMarkdown]);
+
+  // Recompute missing-fields from the live preview so the download button
+  // stays in sync without an extra round-trip to /api/documents.
+  const missing = useMemo<string[]>(() => {
+    if (!previewMarkdown) return [];
+    const seen = new Set<string>();
+    const out: string[] = [];
+    const re = /<span\s+class="coverpage_link"\s*>([^<]+)<\/span>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(previewMarkdown)) !== null) {
+      const name = m[1].trim();
+      if (!seen.has(name)) {
+        seen.add(name);
+        out.push(name);
+      }
+    }
+    return out;
+  }, [previewMarkdown]);
 
   if (!selectedDetail) {
     return (
@@ -112,7 +132,14 @@ export function PreviewPane() {
 
   return (
     <section className="pane pane--preview" aria-label="Document preview">
-      <h2 className="pane__title">Preview</h2>
+      <div className="preview__header">
+        <h2 className="pane__title">Preview</h2>
+        <PdfDownloadButton
+          filename={selectedDetail.filename}
+          fieldValues={fieldValues}
+          missing={missing}
+        />
+      </div>
       {previewStatus === 'loading' && (
         <p className="pane__placeholder" aria-live="polite">
           Updating…
