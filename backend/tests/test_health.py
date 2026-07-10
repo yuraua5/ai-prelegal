@@ -2,9 +2,19 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
+import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+
+# Same skip pattern as tests/test_static_serve.py: the SPA-bundle tests in this
+# module can only run when `frontend/dist` is actually on disk. In CI the
+# backend-test job builds the bundle before pytest, but for local backend-only
+# dev we skip gracefully instead of failing.
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+FRONTEND_DIST = REPO_ROOT / "frontend" / "dist"
 
 
 def test_healthz_returns_ok() -> None:
@@ -14,6 +24,10 @@ def test_healthz_returns_ok() -> None:
     assert response.json() == {"status": "ok"}
 
 
+@pytest.mark.skipif(
+    not FRONTEND_DIST.is_dir(),
+    reason="frontend/dist not built; the backend-test CI job builds it before pytest",
+)
 def test_root_serves_html() -> None:
     """Since step-11 the / endpoint serves the SPA's index.html.
 
