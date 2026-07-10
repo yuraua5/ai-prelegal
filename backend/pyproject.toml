@@ -9,6 +9,7 @@ dependencies = [
     "pydantic-settings>=2.5.0",
     "weasyprint>=66.0",
     "markdown>=3.6",
+    "anthropic>=0.39.0",
 ]
 
 [project.optional-dependencies]
@@ -35,7 +36,7 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "W"]
-ignore = ["E501"]
+ignore = ["E501", "N818", "N801"]
 
 [tool.mypy]
 python_version = "3.12"
