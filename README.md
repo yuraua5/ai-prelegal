@@ -4,12 +4,26 @@ A SaaS that lets users draft legal agreements from templates in `templates/`.
 
 See `CLAUDE.md` for the full project brief (scope, stack, AI rules, color palette).
 
-## Quick start (later — wired up in step-02)
+## Quick start
+
+Requires Docker (Docker Desktop on Mac/Windows, Docker Engine on Linux).
 
 ```bash
-bash scripts/start-mac.sh           # build + run Docker compose on http://localhost:8000
+# macOS
+bash scripts/start-mac.sh           # build + run; waits for /healthz at :8000
 bash scripts/stop-mac.sh
+
+# Linux
+bash scripts/start-linux.sh
+bash scripts/stop-linux.sh
+
+# Windows (PowerShell)
+.\scripts\start-windows.ps1
+.\scripts\stop-windows.ps1
 ```
+
+The image is `prelegal:dev`. Templates and `catalog.json` are bind-mounted
+from the repo so edits show up on restart without rebuilding.
 
 ## Local development
 
