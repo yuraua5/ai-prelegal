@@ -1,0 +1,45 @@
+name: lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  backend-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install uv
+        run: pip install uv
+      - name: Install deps
+        working-directory: backend
+        run: uv sync --extra dev
+      - name: Ruff
+        working-directory: backend
+        run: uv run ruff check .
+      - name: Mypy
+        working-directory: backend
+        run: uv run mypy app
+
+  frontend-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install deps
+        working-directory: frontend
+        run: npm ci || npm install
+      - name: Prettier check
+        working-directory: frontend
+        run: npx prettier --check .
+      - name: ESLint
+        working-directory: frontend
+        run: npm run lint
