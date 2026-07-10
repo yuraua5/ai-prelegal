@@ -28,15 +28,27 @@ COPY backend/pyproject.toml backend/uv.lock* ./
 RUN uv pip install --system --no-cache \
     "fastapi>=0.115.0" \
     "uvicorn[standard]>=0.30.0" \
-    "pydantic-settings>=2.5.0"
+    "pydantic-settings>=2.5.0" \
+    "weasyprint>=66.0" \
+    "markdown>=3.6"
 
 # ─── Stage 3: runtime image ───────────────────────────────────────────────────
 FROM python:3.12-slim-bookworm AS runtime
 
 # Curl is used by the start scripts' healthcheck; tini gives us proper signal
 # forwarding so uvicorn shuts down cleanly on `docker compose stop`.
+# The pango/cairo/harfbuzz family is required by weasyprint's native bindings;
+# fonts-liberation gives the rendered PDF sane sans-serif output.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends curl tini \
+ && apt-get install -y --no-install-recommends \
+        curl \
+        tini \
+        libpango-1.0-0 \
+        libpangoft2-1.0-0 \
+        libharfbuzz0b \
+        libcairo2 \
+        libgdk-pixbuf-2.0-0 \
+        fonts-liberation \
  && rm -rf /var/lib/apt/lists/*
 
 # Re-install uv + runtime deps in the final image.
@@ -44,7 +56,9 @@ RUN pip install --no-cache-dir uv \
  && uv pip install --system --no-cache \
     "fastapi>=0.115.0" \
     "uvicorn[standard]>=0.30.0" \
-    "pydantic-settings>=2.5.0"
+    "pydantic-settings>=2.5.0" \
+    "weasyprint>=66.0" \
+    "markdown>=3.6"
 
 WORKDIR /app
 
