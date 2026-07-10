@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
+from .api_templates import router as templates_router
 from .config import get_settings
 
 app = FastAPI(
@@ -25,6 +26,9 @@ def root() -> dict[str, str]:
     the frontend bundle lands (step-11 will replace this with the SPA).
     """
     return {"service": "prelegal", "see": "/healthz"}
+
+
+app.include_router(templates_router)
 
 
 def run() -> None:  # pragma: no cover - exercised via uvicorn CLI in image
