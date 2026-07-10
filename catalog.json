@@ -1,0 +1,57 @@
+[
+  {
+    "name": "Mutual NDA",
+    "description": "Mutual non-disclosure agreement between two parties sharing confidential information.",
+    "filename": "Mutual-NDA.md"
+  },
+  {
+    "name": "BAA (Business Associate Agreement)",
+    "description": "Business Associate Agreement under HIPAA between a covered entity and a business associate.",
+    "filename": "BAA.md"
+  },
+  {
+    "name": "CSA (Cloud Service Agreement)",
+    "description": "Cloud Service Agreement for procuring SaaS / cloud services between a provider and customer.",
+    "filename": "CSA.md"
+  },
+  {
+    "name": "Design Partner Agreement",
+    "description": "Agreement between a vendor and an early-customer design partner that helps shape the product.",
+    "filename": "design-partner-agreement.md"
+  },
+  {
+    "name": "DPA (Data Processing Agreement)",
+    "description": "Data Processing Agreement for GDPR / privacy compliance between a controller and a processor.",
+    "filename": "DPA.md"
+  },
+  {
+    "name": "Partnership Agreement",
+    "description": "Partnership Agreement between two organizations collaborating on joint go-to-market activities.",
+    "filename": "Partnership-Agreement.md"
+  },
+  {
+    "name": "Pilot Agreement",
+    "description": "Pilot Agreement for a short, paid proof-of-value engagement between a vendor and a prospect.",
+    "filename": "Pilot-Agreement.md"
+  },
+  {
+    "name": "PSA (Professional Services Agreement)",
+    "description": "Professional Services Agreement for consulting or implementation work alongside product purchases.",
+    "filename": "psa.md"
+  },
+  {
+    "name": "SLA (Service Level Agreement)",
+    "description": "Service Level Agreement module defining uptime, support, and credits for an underlying agreement.",
+    "filename": "sla.md"
+  },
+  {
+    "name": "Software License Agreement",
+    "description": "Standard software license agreement granting a customer the right to use vendor software.",
+    "filename": "Software-License-Agreement.md"
+  },
+  {
+    "name": "AI Addendum",
+    "description": "Standard AI Addendum supplementing an underlying agreement with AI-specific terms.",
+    "filename": "AI-Addendum.md"
+  }
+]
