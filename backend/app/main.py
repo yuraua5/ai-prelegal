@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
+from .api_documents import router as documents_router
 from .api_templates import router as templates_router
 from .config import get_settings
 
@@ -29,6 +30,7 @@ def root() -> dict[str, str]:
 
 
 app.include_router(templates_router)
+app.include_router(documents_router)
 
 
 def run() -> None:  # pragma: no cover - exercised via uvicorn CLI in image
